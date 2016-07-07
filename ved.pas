@@ -23,17 +23,14 @@ begin
   writeln;
 end;
 
-procedure RenderText;
-var
-  n: integer;
+procedure RenderText(startln: integer);
 begin
-  n := 1;
-  GotoXY(1, 1);
-
+  GotoXY(1, startln);
   repeat
-    writeln(lines[n]^);
-    inc(n);
-  until (n >= linecount) OR (n = T_HEIGHT - 1);
+    ClrEol;
+    writeln(lines[startln]^);
+    inc(startln);
+  until (startln >= linecount) OR (startln = T_HEIGHT - 1);
 end;
 
 procedure RenderLn(lnr: integer);
@@ -73,8 +70,14 @@ end;
 
 procedure Render;
 begin
-  clrscr;
-  RenderText;
+  RenderText(1);
+  RenderStatus;
+  RenderCursor;
+end;
+
+procedure RenderDown;
+begin
+  RenderText(y);
   RenderStatus;
   RenderCursor;
 end;
@@ -194,7 +197,7 @@ begin
   InsertLine(y, value);
   inc(y);
   x := 1;
-  Render;
+  RenderDown;
 end;
 
 procedure ReadInsert;
@@ -223,7 +226,7 @@ begin
 		  BreakLn(y,x);
                   inc(y);
                   x := 1;
-                  Render;
+                  RenderDown;
                 end;
               ReadInsert;
               ch := #27; { Exit to cmd mode }
@@ -330,7 +333,7 @@ begin
              end;
       #74  : begin           { J }
                DeleteLn(y + 1);
-               Render;
+               RenderDown;
              end;
       #0   : begin           { NULL }
                ch := ReadKey();
