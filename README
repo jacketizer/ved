@@ -1,0 +1,19 @@
+VED
+===
+
+A tiny vi-like editor written in Pascal.
+
+Supported commands
+------------------
+
+  h: Move cursor left
+  l: Move cursor right
+  j: Move cursor down
+  k: Move cursor up
+  o: Insert row below and go to insert mode
+  x: Delete selected character
+  i: Insert text
+  I: Insert text at beginning of line
+  a: Insert text after cursor
+  A: Append text at end of line
+  J: Concatenate the line below with the current line
