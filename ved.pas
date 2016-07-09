@@ -5,6 +5,7 @@ uses
 const
   T_WIDTH = 80;
   T_HEIGHT = 43;
+  MAX_LINES = 400;
 
 type
   linestr = string [T_WIDTH];
@@ -12,22 +13,28 @@ type
 
 var
   x,y : integer; { cursor coordinates }
+  offset : integer;
   status : string;
   linecount : integer;
-  lines : array [1..1000] of lineptr;
+  lines : array [1..MAX_LINES] of lineptr;
   cmd : string;
 
 {
   Render functions
 }
 procedure RenderText(startln : integer);
+var
+  screenln : integer;
 begin
-  GotoXY(1,startln);
+  screenln := startln - offset;
+  GotoXY(1,screenln);
   repeat
     ClrEol;
     Writeln(lines[startln]^);
     Inc(startln);
-  until (startln > linecount) or (startln = T_HEIGHT - 1);
+    Inc(screenln);
+  until (startln > linecount) or
+        (screenln > T_HEIGHT - 1);
 end;
 
 procedure RenderLn(lnr : integer);
@@ -45,10 +52,14 @@ begin
 end;
 
 procedure RenderStatus;
+var
+  percent : integer;
+  percentstr : string;
 begin
   GotoXY(1,T_HEIGHT);
   TextBackground(White);
   TextColor(Black);
+  ClrEol;
 
   if Length(cmd) <> 0 then
     begin
@@ -58,32 +69,37 @@ begin
     begin
       Write(status);
     end;
-  ClrEol;
+ 
+  percent := Round((y + T_HEIGHT) / linecount);
+  percentstr := IntToStr(percent)+'%';
+  GotoXY(T_WIDTH-Length(percentstr)-1,T_HEIGHT);
+  Write(percentstr); 
+
   NormVideo;
 end;
 
 procedure RenderCursor;
 var
-  newX,len : integer;
+  newx,len : integer;
 begin
   { If x is more than line length, goto end of line }
-  newX := x;
+  newx := x;
   len := Length(lines[y]^);
-  if x > len then newX := len;
-  if len = 0 then newX := 1;
-  GotoXY(newX,y);
+  if x > len then newx := len;
+  if len = 0 then newx := 1;
+  GotoXY(newx,y - offset);
 end;
 
 procedure Render;
 begin
-  RenderText(1);
+  RenderText(offset + 1); { Render all }
   RenderStatus;
   RenderCursor;
 end;
 
 procedure RenderDown;
 begin
-  RenderText(y);
+  RenderText(y); { Render from current row down }
   RenderStatus;
   RenderCursor;
 end;
@@ -122,14 +138,31 @@ end;
 
 procedure GoUp;
 begin
-  if y <> 1 then Dec(y);
-  RenderCursor;
+  if y <> 1 then
+    begin
+      Dec(y);
+      if (offset > 0) and
+         (y - offset = 0) then
+        begin
+          Dec(offset);
+          Render;
+        end;
+      RenderCursor;
+    end
 end;
 
 procedure GoDown;
 begin
-  if y <> linecount then Inc(y);
-  RenderCursor;
+  if y < linecount then
+    begin
+      Inc(y);
+      if (y - offset) > T_HEIGHT - 1 then
+        begin
+          Inc(offset);
+	  Render;
+        end;
+      RenderCursor;
+    end;
 end;
 
 procedure GoFarRight;
@@ -273,7 +306,7 @@ begin
     end;
 
   i := 1;
-  while not Eof(filedesc) and (i < 100) do
+  while not Eof(filedesc) and (i < MAX_LINES) do
     begin
       New(lines[i]);
       Readln(filedesc,lines[i]^);
@@ -298,7 +331,9 @@ end;
 
 procedure ReadCommand;
 begin
+  GotoXY(1,T_HEIGHT);
   PrintStatus(':');
+  GotoXY(2,T_HEIGHT);
   Readln(cmd);
   case cmd of
     'q'  : Halt;
@@ -330,11 +365,12 @@ begin
 
   x := 1;
   y := 1;
-  status := 'File loaded!';
+  offset := 0;
   cmd := '';
 
   ClrScr;
   LoadFile(ParamStr(1));
+  PrintStatus(IntToStr(linecount)+' lines read from '''+ParamStr(1)+'''');
   Render;
 
   repeat
