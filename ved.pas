@@ -356,6 +356,16 @@ begin
                AdjustEol;
                RenderCursor;
 	     end;
+      #68  : begin           { D }
+  	       AdjustEol;
+               if Length(lines[y]^) > 1 then
+                 begin
+                   lines[y]^ := LeftStr(lines[y]^,x - 1);
+                   RenderCurLn;
+                   AdjustEol;
+                   RenderCursor;
+		 end;
+               end;
       #105 : begin           { i }
                AdjustEol;
                ReadInsert;

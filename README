@@ -3,8 +3,8 @@ VED
 
 A tiny vi-like editor written in Pascal.
 
-Supported commands
-------------------
+Implemented actions
+-------------------
 
   h: Move cursor left
   l: Move cursor right
@@ -12,8 +12,16 @@ Supported commands
   k: Move cursor up
   o: Insert row below and go to insert mode
   x: Delete selected character
+  D: Delete to end of line
   i: Insert text
   I: Insert text at beginning of line
   a: Insert text after cursor
   A: Append text at end of line
   J: Concatenate the line below with the current line
+
+Implemented commands
+--------------------
+
+  :w   Save file
+  :q   Quit without saving
+  :wq  Save file and then quit
