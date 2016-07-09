@@ -4,8 +4,8 @@ uses
 
 const
   T_WIDTH = 80;
-  T_HEIGHT = 43;
-  MAX_LINES = 400;
+  T_HEIGHT = 24;
+  MAX_LINES = 512;
 
 type
   linestr = string [T_WIDTH];
@@ -70,11 +70,19 @@ begin
       Write(status);
     end;
  
-  percent := Round((y + T_HEIGHT) / linecount);
-  percentstr := IntToStr(percent)+'%';
-  GotoXY(T_WIDTH-Length(percentstr)-1,T_HEIGHT);
-  Write(percentstr); 
+  if offset = 0 then
+    begin
+      percentstr := 'Top';
+    end
+  else
+    begin
+      percent := Trunc(((offset + T_HEIGHT) / linecount) * 100);
+      Str(percent,percentstr);
+      percentstr := percentstr + '%';
+    end;
 
+  GotoXY(T_WIDTH-Length(percentstr) - 1,T_HEIGHT);
+  Write(percentstr); 
   NormVideo;
 end;
 
@@ -219,7 +227,7 @@ var
   len : integer;
 begin
   len := Length(lines[lnr]^) - index + 1;
-  InsertLine(y,RightStr(lines[lnr]^,len));
+  InsertLine(y,Copy(lines[lnr]^,index,len));
   Delete(lines[y]^,index,len);
 end;
 
@@ -244,8 +252,8 @@ end;
 procedure JumpToNewLn(value : linestr);
 begin
   InsertLine(y,value);
-  Inc(y);
   x := 1;
+  GoDown;
   RenderDown;
 end;
 
@@ -273,9 +281,9 @@ begin
               else
                 begin
 		  BreakLn(y,x);
-                  Inc(y);
                   x := 1;
                   RenderDown;
+                  GoDown;
                 end;
               ReadInsert;
               ch := #27; { Exit to cmd mode }
@@ -330,6 +338,8 @@ begin
 end;
 
 procedure ReadCommand;
+var
+  countstr : string;
 begin
   GotoXY(1,T_HEIGHT);
   PrintStatus(':');
@@ -340,7 +350,8 @@ begin
     'w'  : begin
              cmd := '';
              SaveFile(ParamStr(1));
-	     PrintStatus(IntToStr(linecount)+' lines saved to '''+ParamStr(1)+'''');
+             Str(linecount,countstr);
+	     PrintStatus(countstr+' lines saved to '''+ParamStr(1)+'''');
            end;
     'wq' : begin
              SaveFile(ParamStr(1));
@@ -356,6 +367,7 @@ end;
 
 var
   ch : char;
+  countstr : string;
 begin
   if ParamCount < 1 then
     begin
@@ -370,7 +382,8 @@ begin
 
   ClrScr;
   LoadFile(ParamStr(1));
-  PrintStatus(IntToStr(linecount)+' lines read from '''+ParamStr(1)+'''');
+  Str(linecount,countstr);
+  PrintStatus(countstr+' lines read from '''+ParamStr(1)+'''');
   Render;
 
   repeat
@@ -396,7 +409,7 @@ begin
   	       AdjustEol;
                if Length(lines[y]^) > 1 then
                  begin
-                   lines[y]^ := LeftStr(lines[y]^,x - 1);
+                   lines[y]^ := Copy(lines[y]^,1,x - 1);
                    RenderCurLn;
                    AdjustEol;
                    RenderCursor;
