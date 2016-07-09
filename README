@@ -10,6 +10,7 @@ Implemented actions
   l   Move cursor right
   j   Move cursor down
   k   Move cursor up
+  G   Go to bottom of document
   o   Insert row below and go to insert mode
   x   Delete selected character
   D   Delete to end of line

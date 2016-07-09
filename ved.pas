@@ -173,6 +173,16 @@ begin
     end;
 end;
 
+procedure GoToBottom;
+begin
+  y := linecount;
+  if linecount > T_HEIGHT - 1 then
+    begin
+      offset := linecount - T_HEIGHT + 1;
+    end;
+  Render;
+end;
+
 procedure GoFarRight;
 begin
   x := Length(lines[y]^);
@@ -445,6 +455,9 @@ begin
                    RenderLn(y+1);
                    RenderDown;
                  end;
+             end;
+      #71  : begin           { G }
+               GoToBottom;
              end;
       #0   : begin           { NULL }
                ch := ReadKey;
