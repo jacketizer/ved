@@ -15,8 +15,11 @@ var
   status : string;
   linecount : integer;
   lines : array [1..1000] of lineptr;
+  cmd : string;
 
-{* Render functions *}
+{
+  Render functions
+}
 procedure RenderText(startln : integer);
 begin
   GotoXY(1,startln);
@@ -46,7 +49,15 @@ begin
   GotoXY(1,T_HEIGHT);
   TextBackground(White);
   TextColor(Black);
-  Write(status);
+
+  if Length(cmd) <> 0 then
+    begin
+      Write(':',cmd);
+    end
+  else
+    begin
+      Write(status);
+    end;
   ClrEol;
   NormVideo;
 end;
@@ -92,10 +103,9 @@ begin
   if x = 0 then x := 1;
 end;
 
-{* ***************** *}
-{* Movement function *}
-{* ***************** *}
-
+{
+  Movement functions
+}
 procedure GoLeft;
 begin
   AdjustEol;
@@ -146,10 +156,9 @@ begin
     end;
 end;
 
-{* ***************************** *}
-{* Buffer modification functions *}
-{* ***************************** *}
-
+{
+  Buffer modification functions
+}
 procedure DeleteLn(lnr : integer);
 var
   i : integer;
@@ -196,8 +205,9 @@ begin
   GotoXY(x,y);
 end;
 
-{ ***************************** }
-
+{
+  Start of program
+}
 procedure JumpToNewLn(value : linestr);
 begin
   InsertLine(y,value);
@@ -286,12 +296,29 @@ begin
   Close(filedesc);
 end;
 
+procedure ReadCommand;
+begin
+  PrintStatus(':');
+  Readln(cmd);
+  case cmd of
+    'q'  : Halt;
+    'w'  : begin
+             cmd := '';
+             SaveFile(ParamStr(1));
+	     PrintStatus(IntToStr(linecount)+' lines saved to '''+ParamStr(1)+'''');
+           end;
+    'wq' : begin
+             SaveFile(ParamStr(1));
+             Halt;
+           end;
+  end;
+end;
+
 procedure ShowHelp(prgname : string);
 begin
   Writeln('Usage: ', prgname,' filename');
 end;
 
-{ START OF PROGRAM }
 var
   ch : char;
 begin
@@ -304,6 +331,7 @@ begin
   x := 1;
   y := 1;
   status := 'File loaded!';
+  cmd := '';
 
   ClrScr;
   LoadFile(ParamStr(1));
@@ -333,7 +361,7 @@ begin
                ReadInsert;
                ch := #0;
              end;
-      #73 : begin           { I }
+      #73 : begin            { I }
                GoFarLeft;
                ReadInsert;
                ch := #0;
@@ -366,9 +394,7 @@ begin
                  #77 : GoRight;
                end;
              end;
-      #27  : PrintStatus('ESC');
+      #58  : ReadCommand;
     end;
-  until ch = #27;
-
-  SaveFile(ParamStr(1));
+  until ch = #127;
 end.
