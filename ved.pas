@@ -273,7 +273,7 @@ var
 begin
   PrintStatus('[ INSERT ]');
   repeat
-    ch := ReadKey();
+    ch := ReadKey;
     case ch of
       #8  : begin                 { Backspace }
               if x > 0 then begin
@@ -355,19 +355,28 @@ begin
   PrintStatus(':');
   GotoXY(2,T_HEIGHT);
   Readln(cmd);
-  case cmd of
-    'q'  : Halt;
-    'w'  : begin
-             cmd := '';
-             SaveFile(ParamStr(1));
-             Str(linecount,countstr);
-	     PrintStatus(countstr+' lines saved to '''+ParamStr(1)+'''');
-           end;
-    'wq' : begin
-             SaveFile(ParamStr(1));
-             Halt;
-           end;
-  end;
+
+  { Quit }
+  if cmd = 'q' then
+    begin
+      Halt;
+    end
+
+  { Save }
+  else if cmd = 'w' then
+    begin
+      cmd := '';
+      SaveFile(ParamStr(1));
+      Str(linecount,countstr);
+      PrintStatus(countstr+' lines saved to '''+ParamStr(1)+'''');
+    end
+
+  { Save and quit }
+  else if cmd = 'wq' then
+    begin
+      SaveFile(ParamStr(1));
+      Halt;
+    end;
 end;
 
 procedure ShowHelp(prgname : string);

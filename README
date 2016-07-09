@@ -1,7 +1,8 @@
 VED
 ===
 
-A tiny vi-like editor written in Pascal.
+A tiny vi-like editor written in Pascal. Compiles on MS-DOS (Turbo Pascal 7)
+and Linux (FreePascal).
 
 Implemented actions
 -------------------
