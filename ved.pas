@@ -39,11 +39,11 @@ end;
 
 procedure RenderLn(lnr : integer);
 begin
-  GotoXY(1,lnr);
+  GotoXY(1,lnr - offset);
   ClrEol;
   if lnr <= linecount then
     Writeln(lines[lnr]^);
-  GotoXY(x,y);
+  GotoXY(x,y - offset);
 end;
 
 procedure RenderCurLn;
@@ -249,11 +249,10 @@ end;
 
 procedure InsertChar(ch : char);
 begin
-  PrintStatus('Inserting character');
   Insert(ch,lines[y]^,x);
   inc(x);
   RenderCurLn;
-  GotoXY(x,y);
+  GotoXY(x,y - offset);
 end;
 
 {
@@ -271,7 +270,7 @@ procedure ReadInsert;
 var
   ch : char;
 begin
-  PrintStatus('[ INSERT ]');
+  PrintStatus('-- INSERT --');
   repeat
     ch := ReadKey;
     case ch of
@@ -296,7 +295,7 @@ begin
                   GoDown;
                 end;
               ReadInsert;
-              ch := #27; { Exit to cmd mode }
+              ch := #27;          { Exit to cmd mode }
             end;
       #27 : ch := #27;            { ESC }
       else InsertChar(ch);        { Character }
