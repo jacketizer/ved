@@ -41,8 +41,7 @@ procedure RenderLn(lnr : integer);
 begin
   GotoXY(1,lnr - offset);
   ClrEol;
-  if lnr <= linecount then
-    Writeln(lines[lnr]^);
+  Writeln(lines[lnr]^);
   GotoXY(x,y - offset);
 end;
 
@@ -250,7 +249,7 @@ end;
 procedure InsertChar(ch : char);
 begin
   Insert(ch,lines[y]^,x);
-  inc(x);
+  Inc(x);
   RenderCurLn;
   GotoXY(x,y - offset);
 end;
