@@ -307,21 +307,42 @@ begin
   PrintStatus('');
 end;
 
+procedure NewDoc;
+begin
+  New(lines[1]);
+  lines[1]^ := 'New file. Thank you for using this editor.';
+  linecount := 1;
+end;
+
+function FileExists(filename : string) : boolean;
+var
+  f : file;
+  exists : boolean;
+begin
+  Assign(f,filename);
+  {$I-}
+  Reset(f);
+  {$I+}
+  exists := IOResult = 0;
+  if exists then Close(f);
+  FileExists := exists;
+end;
+
 procedure LoadFile(filename : string);
 var
+  countstr : string [4];
   filedesc : text;
   i : integer;
 begin
   Assign(filedesc,filename);
-  Reset(filedesc);
-
-  if (ioresult <> 0) then
+  if not FileExists(filename) then
     begin
-      ClrScr;
-      Writeln('File does not exist: ',filename);
-      Halt;
+      PrintStatus('Editing new file');
+      NewDoc;
+      Exit;
     end;
 
+  Reset(filedesc);
   i := 1;
   while not Eof(filedesc) and (i < MAX_LINES) do
     begin
@@ -329,9 +350,13 @@ begin
       Readln(filedesc,lines[i]^);
       Inc(i);
     end;
-
-  linecount := i - 1;
   Close(filedesc);
+  linecount := i - 1;
+
+  if linecount = 0 then NewDoc;
+
+  Str(linecount,countstr);
+  PrintStatus(countstr+' lines read from '''+ParamStr(1)+'''');
 end;
 
 procedure SaveFile(filename : string);
@@ -340,7 +365,6 @@ var
   i : integer;
 begin
   Assign(filedesc, filename);
-  Erase(filedesc);
   Rewrite(filedesc);
   for i := 1 to linecount do Writeln(filedesc,lines[i]^);
   Close(filedesc);
@@ -385,7 +409,6 @@ end;
 
 var
   ch : char;
-  countstr : string [4];
 begin
   if ParamCount < 1 then
     begin
@@ -400,8 +423,6 @@ begin
 
   ClrScr;
   LoadFile(ParamStr(1));
-  Str(linecount,countstr);
-  PrintStatus(countstr+' lines read from '''+ParamStr(1)+'''');
   Render;
 
   repeat
