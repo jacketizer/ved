@@ -1,6 +1,6 @@
-program Ved;
+program Ved (Input, Output);
 uses
-  Sysutils,Crt;
+  Crt;
 
 const
   T_WIDTH = 80;
@@ -14,10 +14,10 @@ type
 var
   x,y : integer; { cursor coordinates }
   offset : integer;
-  status : string;
+  status : string [70];
   linecount : integer;
   lines : array [1..MAX_LINES] of lineptr;
-  cmd : string;
+  cmd : string [10];
 
 {
   Render functions
@@ -54,7 +54,7 @@ end;
 procedure RenderStatus;
 var
   percent : integer;
-  percentstr : string;
+  percentstr : string [4];
 begin
   GotoXY(1,T_HEIGHT);
   TextBackground(White);
@@ -348,7 +348,7 @@ end;
 
 procedure ReadCommand;
 var
-  countstr : string;
+  countstr : string [4];
 begin
   GotoXY(1,T_HEIGHT);
   PrintStatus(':');
@@ -385,7 +385,7 @@ end;
 
 var
   ch : char;
-  countstr : string;
+  countstr : string [4];
 begin
   if ParamCount < 1 then
     begin
