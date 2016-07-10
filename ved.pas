@@ -12,7 +12,7 @@ type
   lineptr = ^linestr;
 
 var
-  x,y : integer; { cursor coordinates }
+  x, y : integer; { cursor coordinates }
   offset : integer;
   status : string [70];
   linecount : integer;
@@ -27,7 +27,7 @@ var
   screenln : integer;
 begin
   screenln := startln - offset;
-  GotoXY(1,screenln);
+  GotoXY(1, screenln);
   repeat
     ClrEol;
     Writeln(lines[startln]^);
@@ -39,10 +39,10 @@ end;
 
 procedure RenderLn(lnr : integer);
 begin
-  GotoXY(1,lnr - offset);
+  GotoXY(1, lnr - offset);
   ClrEol;
   Writeln(lines[lnr]^);
-  GotoXY(x,y - offset);
+  GotoXY(x, y - offset);
 end;
 
 procedure RenderCurLn;
@@ -55,14 +55,14 @@ var
   percent : integer;
   percentstr : string [4];
 begin
-  GotoXY(1,T_HEIGHT);
+  GotoXY(1, T_HEIGHT);
   TextBackground(White);
   TextColor(Black);
   ClrEol;
 
   if Length(cmd) <> 0 then
     begin
-      Write(':',cmd);
+      Write(':', cmd);
     end
   else
     begin
@@ -76,25 +76,25 @@ begin
   else
     begin
       percent := Trunc(((offset + T_HEIGHT) / linecount) * 100);
-      Str(percent,percentstr);
+      Str(percent, percentstr);
       percentstr := percentstr + '%';
     end;
 
-  GotoXY(T_WIDTH-Length(percentstr) - 1,T_HEIGHT);
+  GotoXY(T_WIDTH - Length(percentstr) - 1, T_HEIGHT);
   Write(percentstr); 
   NormVideo;
 end;
 
 procedure RenderCursor;
 var
-  newx,len : integer;
+  newx, len : integer;
 begin
   { If x is more than line length, goto end of line }
   newx := x;
   len := Length(lines[y]^);
   if x > len then newx := len;
   if len = 0 then newx := 1;
-  GotoXY(newx,y - offset);
+  GotoXY(newx, y - offset);
 end;
 
 procedure Render;
@@ -132,7 +132,7 @@ end;
 procedure GoLeft;
 begin
   AdjustEol;
-  if x <> 1 then Dec(x);
+  if x <> 1 then x := Pred(x);
   RenderCursor;
 end;
 
@@ -147,11 +147,11 @@ procedure GoUp;
 begin
   if y <> 1 then
     begin
-      Dec(y);
+      y := Pred(y);
       if (offset > 0) and
          (y - offset = 0) then
         begin
-          Dec(offset);
+          offset := Pred(offset);
           Render;
         end;
       RenderCursor;
@@ -216,7 +216,7 @@ begin
   Dispose(lines[lnr]);
   for i := lnr to linecount do
     lines[i] := lines[i+1];
-  Dec(linecount);
+  linecount := Pred(linecount);
 end;
 
 procedure InsertLine(lnr : integer; value : linestr);
@@ -231,13 +231,13 @@ begin
   lines[lnr]^ := value;
 end;
 
-procedure BreakLn(lnr,index : integer);
+procedure BreakLn(lnr, index : integer);
 var
   len : integer;
 begin
   len := Length(lines[lnr]^) - index + 1;
-  InsertLine(y,Copy(lines[lnr]^,index,len));
-  Delete(lines[y]^,index,len);
+  InsertLine(y, Copy(lines[lnr]^, index, len));
+  Delete(lines[y]^, index, len);
 end;
 
 procedure DeleteChar(lnr, index: integer);
@@ -248,10 +248,10 @@ end;
 
 procedure InsertChar(ch : char);
 begin
-  Insert(ch,lines[y]^,x);
+  Insert(ch, lines[y]^, x);
   x := Succ(x);
   RenderCurLn;
-  GotoXY(x,y - offset);
+  GotoXY(x, y - offset);
 end;
 
 {
@@ -259,7 +259,7 @@ end;
 }
 procedure JumpToNewLn(value : linestr);
 begin
-  InsertLine(y,value);
+  InsertLine(y, value);
   x := 1;
   GoDown;
   RenderDown;
@@ -275,10 +275,10 @@ begin
     case ch of
       #8  : begin                 { Backspace }
               if x > 0 then begin
-		Dec(x);
-                DeleteChar(y,x);
+                x := Pred(x);
+                DeleteChar(y, x);
                 RenderCurLn;
-  		GotoXY(x,y);
+                GotoXY(x, y);
               end;
             end;
       #13 : begin                 { Line feed }
@@ -288,7 +288,7 @@ begin
                 end
               else
                 begin
-		  BreakLn(y,x);
+                  BreakLn(y, x);
                   x := 1;
                   RenderDown;
                   GoDown;
@@ -301,7 +301,7 @@ begin
     end;
   until ch = #27;
 
-  if x > 1 then Dec(x);
+  if x > 1 then x := Pred(x);
   RenderCursor;
   PrintStatus('');
 end;
@@ -318,7 +318,7 @@ var
   f : file;
   exists : boolean;
 begin
-  Assign(f,filename);
+  Assign(f, filename);
   {$I-}
   Reset(f);
   {$I+}
@@ -330,10 +330,10 @@ end;
 procedure LoadFile(filename : string);
 var
   countstr : string [4];
-  filedesc : text;
+  f : text;
   i : integer;
 begin
-  Assign(filedesc,filename);
+  Assign(f, filename);
   if not FileExists(filename) then
     begin
       PrintStatus('Editing new file');
@@ -341,41 +341,41 @@ begin
       Exit;
     end;
 
-  Reset(filedesc);
+  Reset(f);
   i := 1;
-  while not Eof(filedesc) and (i < MAX_LINES) do
+  while not Eof(f) and (i < MAX_LINES) do
     begin
       New(lines[i]);
-      Readln(filedesc,lines[i]^);
+      Readln(f, lines[i]^);
       i := Succ(i);
     end;
-  Close(filedesc);
+  Close(f);
   linecount := i - 1;
 
   if linecount = 0 then NewDoc;
 
-  Str(linecount,countstr);
+  Str(linecount, countstr);
   PrintStatus(countstr+' lines read from '''+ParamStr(1)+'''');
 end;
 
 procedure SaveFile(filename : string);
 var
-  filedesc : text;
+  f : text;
   i : integer;
 begin
-  Assign(filedesc, filename);
-  Rewrite(filedesc);
-  for i := 1 to linecount do Writeln(filedesc,lines[i]^);
-  Close(filedesc);
+  Assign(f, filename);
+  Rewrite(f);
+  for i := 1 to linecount do Writeln(f, lines[i]^);
+  Close(f);
 end;
 
 procedure ReadCommand;
 var
   countstr : string [4];
 begin
-  GotoXY(1,T_HEIGHT);
+  GotoXY(1, T_HEIGHT);
   PrintStatus(':');
-  GotoXY(2,T_HEIGHT);
+  GotoXY(2, T_HEIGHT);
   Readln(cmd);
 
   { Quit }
@@ -389,7 +389,7 @@ begin
     begin
       cmd := '';
       SaveFile(ParamStr(1));
-      Str(linecount,countstr);
+      Str(linecount, countstr);
       PrintStatus(countstr+' lines saved to '''+ParamStr(1)+'''');
     end
 
@@ -403,7 +403,7 @@ end;
 
 procedure ShowHelp(prgname : string);
 begin
-  Writeln('Usage: ', prgname,' filename');
+  Writeln('Usage: ', prgname, ' filename');
 end;
 
 var
@@ -438,7 +438,7 @@ begin
              end;
       #120 : begin           { x }
   	       AdjustEol;
-	       DeleteChar(y,x);
+	       DeleteChar(y, x);
                RenderCurLn;
                AdjustEol;
                RenderCursor;
@@ -447,7 +447,7 @@ begin
   	       AdjustEol;
                if Length(lines[y]^) > 1 then
                  begin
-                   lines[y]^ := Copy(lines[y]^,1,x - 1);
+                   lines[y]^ := Copy(lines[y]^, 1, x - 1);
                    RenderCurLn;
                    AdjustEol;
                    RenderCursor;
@@ -478,7 +478,7 @@ begin
       #74  : begin           { J }
                if y < linecount then
                  begin
-                   Insert(lines[y+1]^,lines[y]^,Length(lines[y]^) + 1);
+                   Insert(lines[y+1]^, lines[y]^, Length(lines[y]^) + 1);
                    DeleteLn(y+1);
                    RenderLn(y+1);
                    RenderDown;
