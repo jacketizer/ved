@@ -19,6 +19,16 @@ var
   lines : array [1..MAX_LINES] of lineptr;
   cmd : string [10];
 
+{ Uncomment this function for TP 3
+function ReadKey : char;
+var
+  ch : char;
+begin
+  repeat Read(Kbd, ch) until ch <> #0;
+  ReadKey := ch;
+end;
+}
+
 {
   Render functions
 }
