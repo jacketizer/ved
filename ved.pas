@@ -31,8 +31,8 @@ begin
   repeat
     ClrEol;
     Writeln(lines[startln]^);
-    Inc(startln);
-    Inc(screenln);
+    startln := Succ(startln);
+    screenln := Succ(screenln);
   until (startln > linecount) or
         (screenln > T_HEIGHT - 1);
 end;
@@ -139,7 +139,7 @@ end;
 procedure GoRight;
 begin
   AdjustEol;
-  if x < Length(lines[y]^) then Inc(x);
+  if x < Length(lines[y]^) then x := Succ(x);
   RenderCursor;
 end;
 
@@ -162,10 +162,10 @@ procedure GoDown;
 begin
   if y < linecount then
     begin
-      Inc(y);
+      y := Succ(y);
       if (y - offset) > T_HEIGHT - 1 then
         begin
-          Inc(offset);
+          offset := Succ(offset);
 	  Render;
         end;
       RenderCursor;
@@ -223,10 +223,10 @@ procedure InsertLine(lnr : integer; value : linestr);
 var
   i : integer;
 begin
-  Inc(lnr);
+  lnr := Succ(lnr);
   for i := linecount downto lnr do
     lines[i+1] := lines[i];
-  Inc(linecount);
+  linecount := Succ(linecount);
   New(lines[lnr]);
   lines[lnr]^ := value;
 end;
@@ -249,7 +249,7 @@ end;
 procedure InsertChar(ch : char);
 begin
   Insert(ch,lines[y]^,x);
-  Inc(x);
+  x := Succ(x);
   RenderCurLn;
   GotoXY(x,y - offset);
 end;
@@ -347,7 +347,7 @@ begin
     begin
       New(lines[i]);
       Readln(filedesc,lines[i]^);
-      Inc(i);
+      i := Succ(i);
     end;
   Close(filedesc);
   linecount := i - 1;
@@ -465,13 +465,13 @@ begin
              end;
       #97  : begin           { a }
                AdjustEol;
-               Inc(x);
+               x := Succ(x);
                ReadInsert;
                ch := #0;
              end;
       #65  : begin           { A }
                GoFarRight;
-               Inc(x);
+               x := Succ(x);
                ReadInsert;
                ch := #0;
              end;
