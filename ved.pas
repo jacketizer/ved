@@ -4,6 +4,8 @@ uses
 
 const
   MAX_LINES = 512;
+  DEFAULT_WIDTH = 80;
+  DEFAULT_HEIGHT = 24;
 
 type
   filename = string [80];
@@ -433,14 +435,14 @@ end;
 
 procedure ShowHelp(prgname : filename);
 begin
-  Writeln('Usage: ', prgname, ' filename [terminal width] [terminal height]');
+  Writeln('Usage: ', prgname, ' filename [terminal_width terminal_height]');
 end;
 
 var
   ch : char;
   rv : integer;
 begin
-  if ParamCount < 1 then
+  if (ParamCount <> 1) and (ParamCount <> 3) then
     begin
       ShowHelp(ParamStr(0));
       Halt;
@@ -451,8 +453,16 @@ begin
   offset := 0;
   cmd := '';
 
-  Val(ParamStr(2), termWidth, rv);
-  Val(ParamStr(3), termHeight, rv);
+  if ParamCount = 1 then
+    begin
+      termWidth := DEFAULT_WIDTH;
+      termHeight := DEFAULT_HEIGHT;
+    end
+  else
+    begin
+      Val(ParamStr(2), termWidth, rv);
+      Val(ParamStr(3), termHeight, rv);
+    end;
 
   ClrScr;
   LoadFile(ParamStr(1));
