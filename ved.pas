@@ -42,11 +42,13 @@ begin
   GotoXY(1, screenln);
   repeat
     ClrEol;
-    Writeln(lines[startln]^);
-    startln := Succ(startln);
+    if startln <= linecount then
+      begin
+        Writeln(lines[startln]^);
+        startln := Succ(startln);
+      end;
     screenln := Succ(screenln);
-  until (startln > linecount) or
-        (screenln > termHeight - 1);
+  until (screenln > termHeight - 1);
 end;
 
 procedure RenderLn(lnr : integer);
