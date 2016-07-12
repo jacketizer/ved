@@ -129,6 +129,7 @@ procedure PrintStatus(msg : linestr);
 begin
   status := msg;
   RenderStatus;
+  RenderCursor;
 end;
 
 procedure AdjustEol;
@@ -307,7 +308,7 @@ begin
                 x := Pred(x);
                 DeleteChar(y, x);
                 RenderCurLn;
-                GotoXY(x, y);
+                GotoXY(x, y - offset);
               end;
             end;
       #13 : begin                 { Line feed }
@@ -330,7 +331,6 @@ begin
   until ch = #27;
 
   if x > 1 then x := Pred(x);
-  RenderCursor;
   PrintStatus('');
 end;
 
