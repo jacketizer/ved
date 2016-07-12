@@ -458,36 +458,10 @@ begin
   Writeln('Usage: ', prgname, ' filename [terminal_width terminal_height]');
 end;
 
+procedure StartEditor;
 var
   ch : char;
-  rv : integer;
 begin
-  if (ParamCount <> 1) and (ParamCount <> 3) then
-    begin
-      ShowHelp(ParamStr(0));
-      Halt;
-    end;
-
-  x := 1;
-  y := 1;
-  offset := 0;
-  cmd := '';
-
-  if ParamCount = 1 then
-    begin
-      termWidth := DEFAULT_WIDTH;
-      termHeight := DEFAULT_HEIGHT;
-    end
-  else
-    begin
-      Val(ParamStr(2), termWidth, rv);
-      Val(ParamStr(3), termHeight, rv);
-    end;
-
-  ClrScr;
-  LoadFile(ParamStr(1));
-  Render;
-
   repeat
     ch := ReadKey;
     case ch of
@@ -555,4 +529,36 @@ begin
       #58  : ReadCommand;
     end;
   until ch = #127;
+end;
+
+{ Program start }
+var
+  rv : integer;
+begin
+  if (ParamCount <> 1) and (ParamCount <> 3) then
+    begin
+      ShowHelp(ParamStr(0));
+      Halt;
+    end;
+
+  x := 1;
+  y := 1;
+  offset := 0;
+  cmd := '';
+
+  if ParamCount = 1 then
+    begin
+      termWidth := DEFAULT_WIDTH;
+      termHeight := DEFAULT_HEIGHT;
+    end
+  else
+    begin
+      Val(ParamStr(2), termWidth, rv);
+      Val(ParamStr(3), termHeight, rv);
+    end;
+
+  ClrScr;
+  LoadFile(ParamStr(1));
+  Render;
+  StartEditor;
 end.
