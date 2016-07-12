@@ -3,15 +3,15 @@ uses
   Crt;
 
 const
-  T_WIDTH = 80;
-  T_HEIGHT = 24;
   MAX_LINES = 512;
 
 type
-  linestr = string [T_WIDTH];
+  filename = string [80];
+  linestr = string [128];
   lineptr = ^linestr;
 
 var
+  termWidth, termHeight : integer;
   x, y : integer; { cursor coordinates }
   offset : integer;
   status : string [70];
@@ -44,7 +44,7 @@ begin
     startln := Succ(startln);
     screenln := Succ(screenln);
   until (startln > linecount) or
-        (screenln > T_HEIGHT - 1);
+        (screenln > termHeight - 1);
 end;
 
 procedure RenderLn(lnr : integer);
@@ -65,33 +65,33 @@ var
   percent : integer;
   percentstr : string [4];
 begin
-  GotoXY(1, T_HEIGHT);
+  GotoXY(1, termHeight);
   TextBackground(White);
   TextColor(Black);
   ClrEol;
 
   if Length(cmd) <> 0 then
     begin
-      Write(':', cmd);
+      Write(cmd);
     end
   else
     begin
       Write(status);
     end;
- 
+
   if offset = 0 then
     begin
       percentstr := 'Top';
     end
   else
     begin
-      percent := Trunc(((offset + T_HEIGHT) / linecount) * 100);
+      percent := Trunc(((offset + termHeight) / linecount) * 100);
       Str(percent, percentstr);
       percentstr := percentstr + '%';
     end;
 
-  GotoXY(T_WIDTH - Length(percentstr) - 1, T_HEIGHT);
-  Write(percentstr); 
+  GotoXY(termWidth - Length(percentstr) - 1, termHeight);
+  Write(percentstr);
   NormVideo;
 end;
 
@@ -121,7 +121,7 @@ begin
   RenderCursor;
 end;
 
-procedure PrintStatus(msg : string);
+procedure PrintStatus(msg : linestr);
 begin
   status := msg;
   RenderStatus;
@@ -173,7 +173,7 @@ begin
   if y < linecount then
     begin
       y := Succ(y);
-      if (y - offset) > T_HEIGHT - 1 then
+      if (y - offset) > termHeight - 1 then
         begin
           offset := Succ(offset);
 	  Render;
@@ -185,9 +185,9 @@ end;
 procedure GoToBottom;
 begin
   y := linecount;
-  if linecount > T_HEIGHT - 1 then
+  if linecount > termHeight - 1 then
     begin
-      offset := linecount - T_HEIGHT + 1;
+      offset := linecount - termHeight + 1;
     end;
   Render;
 end;
@@ -306,7 +306,6 @@ begin
               ReadInsert;
               ch := #27;          { Exit to cmd mode }
             end;
-      #27 : ch := #27;            { ESC }
       else InsertChar(ch);        { Character }
     end;
   until ch = #27;
@@ -323,12 +322,12 @@ begin
   linecount := 1;
 end;
 
-function FileExists(filename : string) : boolean;
+function FileExists(name : filename) : boolean;
 var
   f : file;
   exists : boolean;
 begin
-  Assign(f, filename);
+  Assign(f, name);
   {$I-}
   Reset(f);
   {$I+}
@@ -337,14 +336,14 @@ begin
   FileExists := exists;
 end;
 
-procedure LoadFile(filename : string);
+procedure LoadFile(name : filename);
 var
-  countstr : string [4];
   f : text;
   i : integer;
+  countstr : string [4];
 begin
-  Assign(f, filename);
-  if not FileExists(filename) then
+  Assign(f, name);
+  if not FileExists(name) then
     begin
       PrintStatus('Editing new file');
       NewDoc;
@@ -365,59 +364,81 @@ begin
   if linecount = 0 then NewDoc;
 
   Str(linecount, countstr);
-  PrintStatus(countstr+' lines read from '''+ParamStr(1)+'''');
+  PrintStatus(countstr + ' lines read from ''' + name + '''');
 end;
 
-procedure SaveFile(filename : string);
+procedure SaveFile(name : filename);
 var
   f : text;
   i : integer;
+  countstr : string [4];
 begin
-  Assign(f, filename);
+  Assign(f, name);
   Rewrite(f);
   for i := 1 to linecount do Writeln(f, lines[i]^);
   Close(f);
+
+  Str(linecount, countstr);
+  PrintStatus(countstr + ' lines saved to ''' + name + '''');
 end;
 
 procedure ReadCommand;
 var
-  countstr : string [4];
+  ch : char;
 begin
-  GotoXY(1, T_HEIGHT);
-  PrintStatus(':');
-  GotoXY(2, T_HEIGHT);
-  Readln(cmd);
+  cmd := ':';
+  status := '';
+  RenderStatus;
+  GotoXY(2, termHeight);
+
+  repeat
+    ch := ReadKey;
+    if (ch <> #13) and (ch <> #27) then
+      Insert(ch, cmd, Length(cmd) + 1);
+    RenderStatus;
+  until (ch = #27) or (ch = #13);
+
+  if (ch = #27) or (cmd = ':') then
+    begin
+      cmd := '';
+      RenderStatus;
+      Exit;
+    end;
 
   { Quit }
-  if cmd = 'q' then
+  if cmd = ':q' then
     begin
       Halt;
     end
 
   { Save }
-  else if cmd = 'w' then
+  else if cmd = ':w' then
     begin
       cmd := '';
       SaveFile(ParamStr(1));
-      Str(linecount, countstr);
-      PrintStatus(countstr+' lines saved to '''+ParamStr(1)+'''');
     end
 
   { Save and quit }
-  else if cmd = 'wq' then
+  else if cmd = ':wq' then
     begin
       SaveFile(ParamStr(1));
       Halt;
+    end
+  else
+    begin
+      cmd := '';
+      PrintStatus('Unknown command');
     end;
 end;
 
-procedure ShowHelp(prgname : string);
+procedure ShowHelp(prgname : filename);
 begin
-  Writeln('Usage: ', prgname, ' filename');
+  Writeln('Usage: ', prgname, ' filename [terminal width] [terminal height]');
 end;
 
 var
   ch : char;
+  rv : integer;
 begin
   if ParamCount < 1 then
     begin
@@ -429,6 +450,9 @@ begin
   y := 1;
   offset := 0;
   cmd := '';
+
+  Val(ParamStr(2), termWidth, rv);
+  Val(ParamStr(3), termHeight, rv);
 
   ClrScr;
   LoadFile(ParamStr(1));
@@ -447,22 +471,22 @@ begin
                ch := #0;
              end;
       #120 : begin           { x }
-  	       AdjustEol;
-	       DeleteChar(y, x);
+               AdjustEol;
+               DeleteChar(y, x);
                RenderCurLn;
                AdjustEol;
                RenderCursor;
-	     end;
+             end;
       #68  : begin           { D }
-  	       AdjustEol;
+               AdjustEol;
                if Length(lines[y]^) > 1 then
                  begin
                    lines[y]^ := Copy(lines[y]^, 1, x - 1);
                    RenderCurLn;
                    AdjustEol;
                    RenderCursor;
-		 end;
-               end;
+                 end;
+             end;
       #105 : begin           { i }
                AdjustEol;
                ReadInsert;
