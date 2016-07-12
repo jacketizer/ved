@@ -264,6 +264,11 @@ begin
     end;
 end;
 
+procedure CropLn(lnr, index : integer);
+begin
+  lines[y]^[0] := Chr(Pred(index));
+end;
+
 procedure DeleteChar(lnr, index: integer);
 begin
   if Length(lines[lnr]^) <> 0 then
@@ -503,9 +508,8 @@ begin
                AdjustEol;
                if Length(lines[y]^) > 1 then
                  begin
-                   lines[y]^ := Copy(lines[y]^, 1, x - 1);
+                   CropLn(y, x);
                    RenderCurLn;
-                   AdjustEol;
                    RenderCursor;
                  end;
              end;
