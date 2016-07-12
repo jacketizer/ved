@@ -226,8 +226,9 @@ var
   i : integer;
 begin
   Dispose(lines[lnr]);
-  for i := lnr to linecount do
-    lines[i] := lines[i+1];
+  if lnr <> linecount then
+    for i := lnr to linecount do
+      lines[i] := lines[i+1];
   linecount := Pred(linecount);
 end;
 
@@ -250,6 +251,15 @@ begin
   len := Length(lines[lnr]^) - index + 1;
   InsertLine(y, Copy(lines[lnr]^, index, len));
   Delete(lines[y]^, index, len);
+end;
+
+procedure ConcatLn(lnr : integer);
+begin
+  if lnr < linecount then
+    begin
+      Insert(lines[Succ(lnr)]^, lines[lnr]^, Length(lines[lnr]^) + 1);
+      DeleteLn(Succ(lnr));
+    end;
 end;
 
 procedure DeleteChar(lnr, index: integer);
@@ -520,13 +530,8 @@ begin
                ch := #0;
              end;
       #74  : begin           { J }
-               if y < linecount then
-                 begin
-                   Insert(lines[y+1]^, lines[y]^, Length(lines[y]^) + 1);
-                   DeleteLn(y+1);
-                   RenderLn(y+1);
-                   RenderDown;
-                 end;
+               ConcatLn(y);
+               RenderDown;
              end;
       #71  : begin           { G }
                GoToBottom;
