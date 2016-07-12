@@ -132,6 +132,10 @@ begin
   RenderCursor;
 end;
 
+{
+  Movement functions
+}
+
 procedure AdjustEol;
 var
   len : integer;
@@ -141,9 +145,6 @@ begin
   if x = 0 then x := 1;
 end;
 
-{
-  Movement functions
-}
 procedure GoLeft;
 begin
   AdjustEol;
@@ -555,6 +556,11 @@ begin
     begin
       Val(ParamStr(2), termWidth, rv);
       Val(ParamStr(3), termHeight, rv);
+      if rv <> 0 then
+        begin
+          ShowHelp(ParamStr(0));
+          Halt;
+        end;
     end;
 
   ClrScr;
