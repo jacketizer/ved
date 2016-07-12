@@ -276,12 +276,9 @@ begin
     Delete(lines[lnr]^, index, 1);
 end;
 
-procedure InsertChar(ch : char);
+procedure InsertChr(lnr, index : integer; ch : char);
 begin
-  Insert(ch, lines[y]^, x);
-  x := Succ(x);
-  RenderCurLn;
-  GotoXY(x, y - offset);
+  Insert(ch, lines[lnr]^, index);
 end;
 
 {
@@ -326,7 +323,13 @@ begin
               ReadInsert;
               ch := #27;          { Exit to cmd mode }
             end;
-      else InsertChar(ch);        { Character }
+      #27 : begin end;
+      else  begin                 { Character }
+              InsertChr(y, x, ch);
+              RenderCurLn;
+              x := Succ(x);
+              GotoXY(x, y - offset);
+            end;
     end;
   until ch = #27;
 
