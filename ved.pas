@@ -129,7 +129,7 @@ procedure PrintStatus(msg : linestr);
 begin
   status := msg;
   RenderStatus;
-  RenderCursor;
+  GotoXY(x, y - offset);
 end;
 
 {
@@ -374,6 +374,7 @@ begin
     end;
 
   Reset(f);
+
   i := 1;
   while not Eof(f) and (i < MAX_LINES) do
     begin
