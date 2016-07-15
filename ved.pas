@@ -201,6 +201,7 @@ end;
 procedure GoFarRight;
 begin
   x := Length(lines[y]^);
+  if x = 0 then x := 1;
   RenderCursor;
 end;
 
@@ -504,13 +505,13 @@ begin
              end;
       #97  : begin           { a }
                AdjustEol;
-               x := Succ(x);
+               if Length(lines[y]^) <> 0 then x := Succ(x);
                ReadInsert;
                ch := #0;
              end;
       #65  : begin           { A }
                GoFarRight;
-               x := Succ(x);
+               if Length(lines[y]^) <> 0 then x := Succ(x);
                ReadInsert;
                ch := #0;
              end;
