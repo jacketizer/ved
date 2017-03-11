@@ -333,8 +333,6 @@ begin
                   RenderDown;
                   GoDown;
                 end;
-              ReadInsert;
-              ch := #27;          { Exit to cmd mode }
             end;
       #27 : begin end;
       else  begin                 { Character }
