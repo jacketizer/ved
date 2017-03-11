@@ -30,6 +30,19 @@ end;
 }
 
 {
+  Get Screen Size for TP7 and FPC
+}
+procedure GetScreenSize;
+begin
+  { TP7 }
+  termWidth := Lo(WindMax) - Lo(WindMin) + 1;
+  termHeight := Hi(WindMax) - Hi(WindMin) + 1;
+  { FPC }
+  termWidth := WindMaxX - WindMinX + 1;
+  termHeight := WindMaxY - WindMinY + 1;
+end;
+
+{
   Render functions
 }
 procedure RenderText(startln : integer);
@@ -456,7 +469,7 @@ end;
 
 procedure ShowHelp(prgname : filename);
 begin
-  Writeln('Usage: ', prgname, ' filename [terminal_width terminal_height]');
+  Writeln('Usage: ', prgname, ' filename');
 end;
 
 procedure StartEditor;
@@ -545,10 +558,7 @@ begin
   offset := 0;
   cmd := '';
 
-  { Get terminal window size }
-  termWidth := WindMaxX - WindMinX + 1;
-  termHeight := WindMaxY - WindMinY + 1;
-
+  GetScreenSize;
   ClrScr;
   LoadFile(ParamStr(1));
   Render;
